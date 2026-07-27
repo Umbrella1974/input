@@ -5,3 +5,6 @@ timestamp,mode_name,delay,score
 2026-07-27 20:31:06,sequential_list1_then_list2_row,0.5,4
 2026-07-27 20:31:15,single_list1_row_t2b,0.5,4
 2026-07-27 20:31:21,staggered_list1_first_col_b2t,0.5,4
+2026-07-27 20:54:31,sequential_list1_then_list2_row,0.4,4
+2026-07-27 20:54:41,single_list1_col_b2t,0.3,5
+2026-07-27 20:54:56,sequential_list2_then_list1_row,0.5,4

@@ -59,13 +59,15 @@ MATRIX2 = [
 
 可通过 `get_mode_delay(mode_name)` 获取某个模式的默认延迟。
 
-### 4. 演示与交互脚本
+### 4. 演示、交互与ESP32发送脚本
 
-项目提供了三个可直接运行的脚本：
+项目提供了多个可直接运行的脚本：
 
 - `demo.py`：演示核心模式、按类别运行部分模式，并提供基础交互式模式选择。
 - `interactive_with_config_delay.py`：交互式选择模式，并从 `mode_delays_config.py` 读取默认延迟；用户也可以覆盖延迟。
 - `interactive_with_scoring.py`：交互式选择模式、输入延迟、运行输出、输入评分，并把结果保存到 `output_scores.csv`。
+- `interactive_with_config_delay_and_scoring.py`：同时支持模式默认延迟、手动覆盖延迟、输出后评分和 CSV 保存。
+- `interactive_send_to_esp32_with_scoring.py`：同时支持模式默认延迟、TCP 逐步发送到 ESP32、发送后评分和 CSV 保存。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -120,6 +122,53 @@ python interactive_with_config_delay.py
 python interactive_with_scoring.py
 ```
 
+运行“默认延迟 + 评分保存”的综合交互版本：
+
+```bash
+python interactive_with_config_delay_and_scoring.py
+```
+
+运行 ESP32 发送版本：
+
+```bash
+python interactive_send_to_esp32_with_scoring.py
+```
+
+启动后会先询问是否 `dry-run`：
+
+- 直接回车：使用默认 `dry-run = y`，只打印将要发送的二进制帧，不连接 ESP32，也不写评分 CSV。
+- 输入 `n`：进入真实发送模式，需要输入 ESP32 的 IP 地址和 TCP 端口，端口默认 `12345`。
+
+真实发送模式下，程序会在进入模式菜单前连接一次 ESP32，等待 `7.5` 秒，让 ESP32 端完成首次连接后的上电准备。之后可以连续选择多个模式发送，这些模式会复用同一个 TCP 连接，不会每个模式重新连接。每个步骤发送一帧，步骤之间等待该模式的 delay。
+
+菜单命令中：
+
+- `q`：退出程序，并关闭 ESP32 TCP 连接。
+- `x`：断开 ESP32 TCP 连接并退出程序。
+- `d`：显示所有模式延迟配置。
+- `s`：查看已保存的评分结果。
+- `m`：重新显示模式列表。
+
+ESP32 端需要运行兼容下面协议的 TCP 服务：
+
+```text
+MAGIC(4B) + length(1B) + payload(N<=128B) + checksum(1B)
+```
+
+其中：
+
+```python
+MAGIC = b"\xAA\x55\xAA\x55"
+payload = bytes(step)
+checksum = sum(payload) & 0xFF
+```
+
+例如步骤 `[1, 4, 7]` 会发送为：
+
+```text
+AA 55 AA 55 03 01 04 07 0C
+```
+
 ## 代码调用示例
 
 ```python
@@ -170,6 +219,8 @@ input_function/
 ├── demo.py                             # 基础演示和交互选择
 ├── interactive_with_config_delay.py    # 使用配置延迟的交互版本
 ├── interactive_with_scoring.py         # 带评分和 CSV 保存的交互版本
+├── interactive_with_config_delay_and_scoring.py # 配置延迟 + 评分保存入口
+├── interactive_send_to_esp32_with_scoring.py    # 配置延迟 + TCP发送ESP32 + 评分保存入口
 ├── test.py                             # 断言式测试脚本
 ├── quick_test.py                       # 快速人工检查脚本
 ├── output_scores.csv                   # 评分结果 CSV
@@ -186,6 +237,8 @@ input_function/
 - 双矩阵错位输出的总步骤数为 `N + 1`。
 - 双矩阵顺序输出的总步骤数为 `2N`。
 - 交互脚本中的延迟只影响打印节奏；核心函数会一次性返回完整步骤列表。
+- ESP32 发送入口只负责发送当前步骤的通道 payload，不负责硬件安全关闭。
+- ESP32 发送入口会检查每个通道必须是 `0-127` 范围内的整数，且每帧 payload 长度不能超过 `128`。
 
 ## 如何扩展
 
