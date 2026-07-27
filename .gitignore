@@ -1,0 +1,13 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 也可以包含其他常见的不需要跟踪的文件：
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+*.whl
