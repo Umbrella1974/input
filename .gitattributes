@@ -1,4 +1,4 @@
-@"
+
 
 * text=auto
 
@@ -20,4 +20,3 @@
 
 *.csv text eol=lf
 
-"@  Set-Content .gitattributes -Encoding utf8
