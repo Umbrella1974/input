@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../../../vscode/esp32_feedback_20250810"
+		}
+	],
+	"settings": {}
+}

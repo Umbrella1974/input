@@ -8,3 +8,8 @@ timestamp,mode_name,delay,score
 2026-07-27 20:54:31,sequential_list1_then_list2_row,0.4,4
 2026-07-27 20:54:41,single_list1_col_b2t,0.3,5
 2026-07-27 20:54:56,sequential_list2_then_list1_row,0.5,4
+2026-07-28 18:11:27,sequential_list1_then_list2_row,0.4,5
+2026-07-28 18:12:11,staggered_list2_first_row_t2b,0.6,5
+2026-07-28 20:33:20,staggered_list2_first_row_t2b,0.6,5
+2026-07-28 20:33:40,staggered_list2_first_col_r2l,1.0,5
+2026-07-28 20:33:53,sequential_list1_then_list2_col,0.4,5

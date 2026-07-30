@@ -68,6 +68,8 @@ MATRIX2 = [
 - `interactive_with_scoring.py`：交互式选择模式、输入延迟、运行输出、输入评分，并把结果保存到 `output_scores.csv`。
 - `interactive_with_config_delay_and_scoring.py`：同时支持模式默认延迟、手动覆盖延迟、输出后评分和 CSV 保存。
 - `interactive_send_to_esp32_with_scoring.py`：同时支持模式默认延迟、TCP 逐步发送到 ESP32、发送后评分和 CSV 保存。
+- `interactive_send_to_esp32_pwm_with_scoring.py`：面向 `esp32_fast_main_pwm.py`，在 ESP32 TCP 发送基础上可选附加 PWM 控制字节。
+- `interactive_send_to_esp32_hv507_gate_with_scoring.py`：面向 `esp32_fast_main_hv507_gate.py`，使用 HV507 gate 控制帧发送输出步骤，并在退出时请求关闭输出 gate。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -134,6 +136,18 @@ python interactive_with_config_delay_and_scoring.py
 python interactive_send_to_esp32_with_scoring.py
 ```
 
+运行 ESP32 PWM 发送版本：
+
+```bash
+python interactive_send_to_esp32_pwm_with_scoring.py
+```
+
+运行 ESP32 HV507 gate 发送版本：
+
+```bash
+python interactive_send_to_esp32_hv507_gate_with_scoring.py
+```
+
 启动后会先询问是否 `dry-run`：
 
 - 直接回车：使用默认 `dry-run = y`，只打印将要发送的二进制帧，不连接 ESP32，也不写评分 CSV。
@@ -148,6 +162,65 @@ python interactive_send_to_esp32_with_scoring.py
 - `d`：显示所有模式延迟配置。
 - `s`：查看已保存的评分结果。
 - `m`：重新显示模式列表。
+
+PWM 发送版本会额外询问是否启用 PWM 控制。默认不启用，此时 payload 与普通 ESP32 发送版本一致：
+
+```text
+[channel1, channel2, ...]
+```
+
+启用 PWM 后，每个 payload 前面会增加一个控制字节：
+
+```text
+[control_byte, channel1, channel2, ...]
+```
+
+控制字节按 `esp32_fast_main_pwm.py` 的规则生成：
+
+```python
+control_byte = 0x80 | (pwm_mode << 2) | duration_code
+```
+
+当前可选 PWM 模式：
+
+- `0`：关闭
+- `1`：开启，100%，1kHz
+- `2`：1kHz，50%
+- `3`：500Hz，75%
+- `4`：2kHz，25%
+
+当前可选持续时间：
+
+- `0`：持续
+- `1`：100ms
+- `2`：500ms
+- `3`：1000ms
+
+HV507 gate 发送版本面向 `esp32_fast_main_hv507_gate.py`。这个 ESP32 程序把 BL 当成输出 gate，默认关闭输出；因此 PC 端每个正常输出步骤都会发送带控制字节的 payload：
+
+```text
+[0xE0, channel1, channel2, ...]
+```
+
+`0xE0` 的含义：
+
+- `0x80`：这是 control frame。
+- `0x40`：打开 HV507 输出 gate。
+- `0x20`：使用本帧通道数据更新并 latch HV507。
+
+例如步骤 `[1, 4, 7]` 会发送：
+
+```text
+AA 55 AA 55 04 E0 01 04 07 EC
+```
+
+真实发送模式退出时，程序会尽力先发送 gate-off 控制帧，再关闭 TCP 连接：
+
+```text
+AA 55 AA 55 01 80 80
+```
+
+如果 PC 端发送 gate-off 失败，程序仍会关闭 TCP 连接；ESP32 端在客户端断开时也会调用 `force_outputs_off()` 作为本地安全兜底。
 
 ESP32 端需要运行兼容下面协议的 TCP 服务：
 
@@ -221,6 +294,8 @@ input_function/
 ├── interactive_with_scoring.py         # 带评分和 CSV 保存的交互版本
 ├── interactive_with_config_delay_and_scoring.py # 配置延迟 + 评分保存入口
 ├── interactive_send_to_esp32_with_scoring.py    # 配置延迟 + TCP发送ESP32 + 评分保存入口
+├── interactive_send_to_esp32_pwm_with_scoring.py # 配置延迟 + TCP发送ESP32 PWM版 + 评分保存入口
+├── interactive_send_to_esp32_hv507_gate_with_scoring.py # 配置延迟 + TCP发送ESP32 HV507 gate版 + 评分保存入口
 ├── test.py                             # 断言式测试脚本
 ├── quick_test.py                       # 快速人工检查脚本
 ├── output_scores.csv                   # 评分结果 CSV
@@ -239,6 +314,8 @@ input_function/
 - 交互脚本中的延迟只影响打印节奏；核心函数会一次性返回完整步骤列表。
 - ESP32 发送入口只负责发送当前步骤的通道 payload，不负责硬件安全关闭。
 - ESP32 发送入口会检查每个通道必须是 `0-127` 范围内的整数，且每帧 payload 长度不能超过 `128`。
+- ESP32 PWM 发送入口默认不启用 PWM；启用后每帧会占用 1 字节 control byte，因此每帧最多 `127` 个通道。
+- ESP32 HV507 gate 发送入口每个正常输出步骤都会占用 1 字节 control byte，因此每帧最多 `127` 个通道；退出时会尝试发送 gate-off，但最终硬件兜底仍应由 ESP32 端断连处理负责。
 
 ## 如何扩展
 
