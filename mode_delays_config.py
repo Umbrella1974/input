@@ -42,6 +42,26 @@ MODE_DELAYS = {
     'sequential_list1_then_list2_row': 0.4,
     'sequential_list2_then_list1_col': 0.4,
     'sequential_list2_then_list1_row': 0.4,
+
+    # 类别E: 单矩阵边缘行/列输出
+    'edge_single_list1_row_top': 0.4,
+    'edge_single_list1_row_bottom': 0.4,
+    'edge_single_list1_col_left': 0.4,
+    'edge_single_list1_col_right': 0.4,
+    'edge_single_list2_row_top': 0.4,
+    'edge_single_list2_row_bottom': 0.4,
+    'edge_single_list2_col_left': 0.4,
+    'edge_single_list2_col_right': 0.4,
+
+    # 类别F/G: 双矩阵边缘顺序输出
+    'edge_pair_list1_then_list2_row_top': 0.5,
+    'edge_pair_list1_then_list2_row_bottom': 0.5,
+    'edge_pair_list1_then_list2_col_left': 0.5,
+    'edge_pair_list1_then_list2_col_right': 0.5,
+    'edge_pair_list2_then_list1_row_top': 0.5,
+    'edge_pair_list2_then_list1_row_bottom': 0.5,
+    'edge_pair_list2_then_list1_col_left': 0.5,
+    'edge_pair_list2_then_list1_col_right': 0.5,
 }
 
 # 默认延迟（当模式不在配置中时使用）

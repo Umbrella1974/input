@@ -21,6 +21,8 @@ from matrix_output import (
     single_matrix,
     staggered_matrices,
     sequential_matrices,
+    edge_single_matrix,
+    edge_pair_matrices,
     validate_matrices,
 )
 from mode_delays_config import MODE_DELAYS, get_mode_delay
@@ -60,6 +62,10 @@ def run_mode(mode_name: str, matrix1, matrix2, delay: float = 0.5):
             steps = staggered_matrices(matrix1, matrix2, **params)
         elif func_name == "sequential_matrices":
             steps = sequential_matrices(matrix1, matrix2, **params)
+        elif func_name == "edge_single_matrix":
+            steps = edge_single_matrix(matrix1, matrix2, **params)
+        elif func_name == "edge_pair_matrices":
+            steps = edge_pair_matrices(matrix1, matrix2, **params)
         else:
             print(f"  错误: 未知函数 '{func_name}'")
             return None
@@ -152,6 +158,9 @@ def show_mode_delays():
         "B": [],
         "C": [],
         "D": [],
+        "E": [],
+        "F": [],
+        "G": [],
     }
 
     for mode, delay in MODE_DELAYS.items():
@@ -163,12 +172,21 @@ def show_mode_delays():
             categories["C"].append((mode, delay))
         elif mode.startswith("sequential_"):
             categories["D"].append((mode, delay))
+        elif mode.startswith("edge_single_"):
+            categories["E"].append((mode, delay))
+        elif mode.startswith("edge_pair_list1_"):
+            categories["F"].append((mode, delay))
+        elif mode.startswith("edge_pair_list2_"):
+            categories["G"].append((mode, delay))
 
     category_titles = {
         "A": "类别A: 单个矩阵",
         "B": "类别B: 双矩阵错位 (list1先)",
         "C": "类别C: 双矩阵错位 (list2先)",
         "D": "类别D: 顺序输出",
+        "E": "类别E: 单矩阵边缘输出",
+        "F": "类别F: 双矩阵边缘输出 (list1先)",
+        "G": "类别G: 双矩阵边缘输出 (list2先)",
     }
 
     for category_name, modes in categories.items():

@@ -7,10 +7,12 @@ import sys
 sys.path.insert(0, '.')
 
 from matrix_output import (
-    get_column, get_row,
+    get_column, get_row, get_edge_line,
     single_matrix,
     staggered_matrices,
     sequential_matrices,
+    edge_single_matrix,
+    edge_pair_matrices,
     validate_matrices
 )
 
@@ -152,6 +154,31 @@ def test_sequential_matrices():
     print("  sequential(list1先, col) 通过")
 
 
+def test_edge_outputs():
+    """测试边缘行/列输出"""
+    print("\n测试边缘行/列输出...")
+
+    assert get_edge_line(MATRIX1, 'top') == [1, 2, 3]
+    assert get_edge_line(MATRIX1, 'bottom') == [7, 8, 9]
+    assert get_edge_line(MATRIX1, 'left') == [1, 4, 7]
+    assert get_edge_line(MATRIX1, 'right') == [3, 6, 9]
+    print("  get_edge_line 通过")
+
+    steps = edge_single_matrix(MATRIX1, MATRIX2, matrix='matrix1', edge='top')
+    assert steps == [[1, 2, 3]], f"edge_single_matrix(matrix1, top)错误: {steps}"
+
+    steps = edge_single_matrix(MATRIX1, MATRIX2, matrix='matrix2', edge='bottom')
+    assert steps == [[16, 17, 18]], f"edge_single_matrix(matrix2, bottom)错误: {steps}"
+
+    steps = edge_pair_matrices(MATRIX1, MATRIX2, edge='right', order='matrix1_first')
+    assert steps == [[3, 6, 9], [12, 15, 18]], f"edge_pair_matrices(matrix1_first, right)错误: {steps}"
+
+    steps = edge_pair_matrices(MATRIX1, MATRIX2, edge='left', order='matrix2_first')
+    assert steps == [[10, 13, 16], [1, 4, 7]], f"edge_pair_matrices(matrix2_first, left)错误: {steps}"
+
+    print("  边缘行/列输出测试通过")
+
+
 def test_validation():
     """测试矩阵验证"""
     print("\n测试矩阵验证...")
@@ -179,6 +206,7 @@ def main():
     test_single_matrix()
     test_staggered_matrices()
     test_sequential_matrices()
+    test_edge_outputs()
     test_validation()
 
     print("\n所有测试通过！")

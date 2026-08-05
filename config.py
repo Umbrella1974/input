@@ -56,6 +56,28 @@ OUTPUT_MODES = {
     'sequential_list1_then_list2_row': ('sequential_matrices', {'axis': 'row', 'order': 'matrix1_first'}),
     'sequential_list2_then_list1_col': ('sequential_matrices', {'axis': 'col', 'order': 'matrix2_first'}),
     'sequential_list2_then_list1_row': ('sequential_matrices', {'axis': 'row', 'order': 'matrix2_first'}),
+
+    # 类别E: 单矩阵边缘行/列输出
+    'edge_single_list1_row_top': ('edge_single_matrix', {'matrix': 'matrix1', 'edge': 'top'}),
+    'edge_single_list1_row_bottom': ('edge_single_matrix', {'matrix': 'matrix1', 'edge': 'bottom'}),
+    'edge_single_list1_col_left': ('edge_single_matrix', {'matrix': 'matrix1', 'edge': 'left'}),
+    'edge_single_list1_col_right': ('edge_single_matrix', {'matrix': 'matrix1', 'edge': 'right'}),
+    'edge_single_list2_row_top': ('edge_single_matrix', {'matrix': 'matrix2', 'edge': 'top'}),
+    'edge_single_list2_row_bottom': ('edge_single_matrix', {'matrix': 'matrix2', 'edge': 'bottom'}),
+    'edge_single_list2_col_left': ('edge_single_matrix', {'matrix': 'matrix2', 'edge': 'left'}),
+    'edge_single_list2_col_right': ('edge_single_matrix', {'matrix': 'matrix2', 'edge': 'right'}),
+
+    # 类别F: 双矩阵边缘输出，matrix1先
+    'edge_pair_list1_then_list2_row_top': ('edge_pair_matrices', {'edge': 'top', 'order': 'matrix1_first'}),
+    'edge_pair_list1_then_list2_row_bottom': ('edge_pair_matrices', {'edge': 'bottom', 'order': 'matrix1_first'}),
+    'edge_pair_list1_then_list2_col_left': ('edge_pair_matrices', {'edge': 'left', 'order': 'matrix1_first'}),
+    'edge_pair_list1_then_list2_col_right': ('edge_pair_matrices', {'edge': 'right', 'order': 'matrix1_first'}),
+
+    # 类别G: 双矩阵边缘输出，matrix2先
+    'edge_pair_list2_then_list1_row_top': ('edge_pair_matrices', {'edge': 'top', 'order': 'matrix2_first'}),
+    'edge_pair_list2_then_list1_row_bottom': ('edge_pair_matrices', {'edge': 'bottom', 'order': 'matrix2_first'}),
+    'edge_pair_list2_then_list1_col_left': ('edge_pair_matrices', {'edge': 'left', 'order': 'matrix2_first'}),
+    'edge_pair_list2_then_list1_col_right': ('edge_pair_matrices', {'edge': 'right', 'order': 'matrix2_first'}),
 }
 
 # 模式分类
@@ -95,5 +117,27 @@ CATEGORIES = {
         'sequential_list1_then_list2_row',
         'sequential_list2_then_list1_col',
         'sequential_list2_then_list1_row',
-    ]
+    ],
+    'E': [
+        'edge_single_list1_row_top',
+        'edge_single_list1_row_bottom',
+        'edge_single_list1_col_left',
+        'edge_single_list1_col_right',
+        'edge_single_list2_row_top',
+        'edge_single_list2_row_bottom',
+        'edge_single_list2_col_left',
+        'edge_single_list2_col_right',
+    ],
+    'F': [
+        'edge_pair_list1_then_list2_row_top',
+        'edge_pair_list1_then_list2_row_bottom',
+        'edge_pair_list1_then_list2_col_left',
+        'edge_pair_list1_then_list2_col_right',
+    ],
+    'G': [
+        'edge_pair_list2_then_list1_row_top',
+        'edge_pair_list2_then_list1_row_bottom',
+        'edge_pair_list2_then_list1_col_left',
+        'edge_pair_list2_then_list1_col_right',
+    ],
 }

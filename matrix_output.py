@@ -5,6 +5,7 @@
 1. 单个矩阵输出（按列/行，四个方向）
 2. 双矩阵错位输出（按列/行，四个方向，可选择哪个矩阵先开始）
 3. 双矩阵顺序输出（按列/行，可选择顺序）
+4. 边缘行/列输出（单矩阵或双矩阵顺序）
 
 支持任意N×N方阵，两个矩阵维度必须一致。
 """
@@ -51,6 +52,31 @@ def get_row(matrix: List[List[Any]], row_idx: int, reverse: bool = False) -> Lis
     if reverse:
         row = row[::-1]
     return row
+
+
+def get_edge_line(matrix: List[List[Any]], edge: str) -> List[Any]:
+    """提取矩阵的边缘行/列。
+
+    Args:
+        matrix: 二维矩阵
+        edge: 'top'第一行，'bottom'最后一行，'left'第一列，'right'最后一列
+
+    Returns:
+        边缘行/列元素列表
+    """
+    if not matrix:
+        return []
+
+    if edge == 'top':
+        return get_row(matrix, 0)
+    if edge == 'bottom':
+        return get_row(matrix, len(matrix) - 1)
+    if edge == 'left':
+        return get_column(matrix, 0)
+    if edge == 'right':
+        return get_column(matrix, len(matrix[0]) - 1)
+
+    raise ValueError(f"未知边缘位置: {edge}")
 
 
 def single_matrix(matrix: List[List[Any]], axis: str = 'col', direction: str = 'l2r') -> List[List[Any]]:
@@ -231,6 +257,59 @@ def sequential_matrices(matrix1: List[List[Any]], matrix2: List[List[Any]],
             steps.append(get_row(second, row_idx))
 
     return steps
+
+
+def edge_single_matrix(matrix1: List[List[Any]], matrix2: List[List[Any]],
+                       matrix: str = 'matrix1', edge: str = 'top') -> List[List[Any]]:
+    """单矩阵边缘输出。
+
+    Args:
+        matrix1: 第一个矩阵
+        matrix2: 第二个矩阵
+        matrix: 'matrix1'或'matrix2'，指定输出哪个矩阵
+        edge: 'top'第一行，'bottom'最后一行，'left'第一列，'right'最后一列
+
+    Returns:
+        只包含一个步骤的列表
+    """
+    if matrix == 'matrix1':
+        selected = matrix1
+    elif matrix == 'matrix2':
+        selected = matrix2
+    else:
+        raise ValueError(f"未知矩阵名称: {matrix}")
+
+    line = get_edge_line(selected, edge)
+    return [line] if line else []
+
+
+def edge_pair_matrices(matrix1: List[List[Any]], matrix2: List[List[Any]],
+                       edge: str = 'top', order: str = 'matrix1_first') -> List[List[Any]]:
+    """双矩阵边缘顺序输出。
+
+    Args:
+        matrix1: 第一个矩阵
+        matrix2: 第二个矩阵
+        edge: 'top'第一行，'bottom'最后一行，'left'第一列，'right'最后一列
+        order: 'matrix1_first'先输出matrix1再输出matrix2，
+               'matrix2_first'先输出matrix2再输出matrix1
+
+    Returns:
+        两个步骤的列表
+    """
+    validate_matrices(matrix1, matrix2)
+
+    if order == 'matrix1_first':
+        first, second = matrix1, matrix2
+    elif order == 'matrix2_first':
+        first, second = matrix2, matrix1
+    else:
+        raise ValueError(f"未知输出顺序: {order}")
+
+    return [
+        get_edge_line(first, edge),
+        get_edge_line(second, edge),
+    ]
 
 
 def validate_matrices(matrix1: List[List[Any]], matrix2: List[List[Any]]) -> bool:

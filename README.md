@@ -12,9 +12,12 @@
 
 - `get_column(matrix, col_idx, reverse=False)`：提取指定列。
 - `get_row(matrix, row_idx, reverse=False)`：提取指定行。
+- `get_edge_line(matrix, edge)`：提取矩阵的上、下、左、右边缘行/列。
 - `single_matrix(matrix, axis='col', direction='l2r')`：单矩阵输出。
 - `staggered_matrices(matrix1, matrix2, axis='col', direction='l2r', first='matrix1')`：双矩阵错位输出。
 - `sequential_matrices(matrix1, matrix2, axis='col', order='matrix1_first')`：双矩阵顺序输出。
+- `edge_single_matrix(matrix1, matrix2, matrix='matrix1', edge='top')`：单个矩阵边缘输出。
+- `edge_pair_matrices(matrix1, matrix2, edge='top', order='matrix1_first')`：两个矩阵同一边缘按顺序输出。
 - `validate_matrices(matrix1, matrix2)`：验证两个矩阵是否为相同大小的方阵。
 
 这些函数返回的是 `List[List[Any]]`，也就是“步骤列表”。例如每一列或每一行会作为一个步骤输出；双矩阵错位时，同一步里的两个行/列会拼接到同一个列表里。
@@ -37,14 +40,17 @@ MATRIX2 = [
 ]
 ```
 
-`OUTPUT_MODES` 当前配置了 28 种模式：
+`OUTPUT_MODES` 当前配置了 44 种模式：
 
 - 类别 A：单矩阵输出，8 种。支持按列/按行，以及 `l2r`、`r2l`、`t2b`、`b2t` 四个方向。
 - 类别 B：双矩阵错位输出，`matrix1` 先开始，8 种。
 - 类别 C：双矩阵错位输出，`matrix2` 先开始，8 种。
 - 类别 D：双矩阵顺序输出，4 种。支持先 `matrix1` 后 `matrix2`，或先 `matrix2` 后 `matrix1`，并支持按列或按行。
+- 类别 E：单矩阵边缘输出，8 种。支持 `matrix1` 或 `matrix2` 的上、下、左、右边缘。
+- 类别 F：双矩阵边缘顺序输出，`matrix1` 先、`matrix2` 后，4 种。
+- 类别 G：双矩阵边缘顺序输出，`matrix2` 先、`matrix1` 后，4 种。
 
-`CATEGORIES` 已经把这些模式按 A、B、C、D 四类整理好，方便批量运行或展示。
+`CATEGORIES` 已经把这些模式按 A 到 G 七类整理好，方便批量运行或展示。
 
 ### 3. 延迟配置
 
@@ -55,6 +61,8 @@ MATRIX2 = [
 - 双矩阵错位按列模式默认 `0.5` 秒。
 - 双矩阵错位按行模式默认 `0.6` 秒。
 - 顺序输出模式默认 `0.4` 秒。
+- 单矩阵边缘模式默认 `0.4` 秒。
+- 双矩阵边缘顺序模式默认 `0.5` 秒。
 - 未配置模式使用 `DEFAULT_DELAY = 0.5`。
 
 可通过 `get_mode_delay(mode_name)` 获取某个模式的默认延迟。
@@ -70,6 +78,7 @@ MATRIX2 = [
 - `interactive_send_to_esp32_with_scoring.py`：同时支持模式默认延迟、TCP 逐步发送到 ESP32、发送后评分和 CSV 保存。
 - `interactive_send_to_esp32_pwm_with_scoring.py`：面向 `esp32_fast_main_pwm.py`，在 ESP32 TCP 发送基础上可选附加 PWM 控制字节。
 - `interactive_send_to_esp32_hv507_gate_with_scoring.py`：面向 `esp32_fast_main_hv507_gate.py`，使用 HV507 gate 控制帧发送输出步骤，并在退出时请求关闭输出 gate。
+- `interactive_experiment_send_to_esp32_hv507_gate.py`：随机实验入口，从实验池生成随机 trial 顺序，发送刺激后记录受试者答案、反应时间和重播次数。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -148,6 +157,12 @@ python interactive_send_to_esp32_pwm_with_scoring.py
 python interactive_send_to_esp32_hv507_gate_with_scoring.py
 ```
 
+运行随机实验版本：
+
+```bash
+python interactive_experiment_send_to_esp32_hv507_gate.py
+```
+
 启动后会先询问是否 `dry-run`：
 
 - 直接回车：使用默认 `dry-run = y`，只打印将要发送的二进制帧，不连接 ESP32，也不写评分 CSV。
@@ -222,6 +237,115 @@ AA 55 AA 55 01 80 80
 
 如果 PC 端发送 gate-off 失败，程序仍会关闭 TCP 连接；ESP32 端在客户端断开时也会调用 `force_outputs_off()` 作为本地安全兜底。
 
+随机实验版本使用 `experiment_pool_config.py` 配置实验池：
+
+- `TRIAL_POOL`：哪些模式进入实验池，以及每个模式出现几次。
+- `CHOICE_LABELS`：受试者看到的代称选项，不能直接等于真实模式名。
+- `MAX_REPLAYS`：每题最多允许重播次数。
+- `RANDOM_SEED`：`None` 表示真随机，填整数可复现实验顺序。
+- `RESULTS_CSV`：trial 结果文件，默认 `experiment_results.csv`。
+
+实验启动时会选择：
+
+- `session_id`：直接回车自动生成。
+- `run_mode`：`train` 训练模式或 `test` 受试模式。
+- 是否显示本次 trial 帧内容：训练模式默认显示，受试模式默认隐藏。
+- 是否 dry-run：dry-run 不连接 ESP32，也不写实验 CSV。
+
+训练模式会显示本题正确的 `CHOICE_LABELS` 标签；受试模式不会显示正确标签。真实发送模式会保存完整随机顺序到 `experiment_sequence_{session_id}.csv`，每题结果写入 `experiment_results.csv`，字段包含：
+
+```text
+timestamp,session_id,run_mode,trial_index,true_mode,true_label,answer_mode,answer_label,is_correct,reaction_time_sec,replay_count,status
+```
+
+训练/受试模式与帧显示开关：
+
+- `train`：训练模式，屏幕会提示本题正确标签，例如 `训练提示: 本次信号 = 列→`。
+- `test`：受试模式，屏幕不会提示本题正确标签。
+- `是否显示本次trial帧内容`：控制屏幕上是否打印 channels 和 frame；训练模式默认 `y`，受试模式默认 `n`。
+- 以上设置在 dry-run 和真实 ESP32 连接模式下都生效。
+
+当前可以放入 `TRIAL_POOL` 的模式必须来自 `config.py` 的 `OUTPUT_MODES`。下面这些模式都已经在 `experiment_pool_config.py` 里配置了受试者可见标签。
+
+类别 A：单矩阵输出
+
+```text
+single_list1_col_l2r  -> 列→
+single_list1_col_r2l  -> 列←
+single_list1_col_t2b  -> 上到下列
+single_list1_col_b2t  -> 下到上列
+single_list1_row_l2r  -> 左到右行
+single_list1_row_r2l  -> 右到左行
+single_list1_row_t2b  -> 行↓
+single_list1_row_b2t  -> 行↑
+```
+
+类别 B：双矩阵错位输出，list1 先
+
+```text
+staggered_list1_first_col_l2r -> L1先列->
+staggered_list1_first_col_r2l -> L1先列<-
+staggered_list1_first_col_t2b -> L1先列上到下
+staggered_list1_first_col_b2t -> L1先列下到上
+staggered_list1_first_row_l2r -> L1先行->
+staggered_list1_first_row_r2l -> L1先行<-
+staggered_list1_first_row_t2b -> L1先行上到下
+staggered_list1_first_row_b2t -> L1先行下到上
+```
+
+类别 C：双矩阵错位输出，list2 先
+
+```text
+staggered_list2_first_col_l2r -> L2先列->
+staggered_list2_first_col_r2l -> L2先列<-
+staggered_list2_first_col_t2b -> L2先列上到下
+staggered_list2_first_col_b2t -> L2先列下到上
+staggered_list2_first_row_l2r -> L2先行->
+staggered_list2_first_row_r2l -> L2先行<-
+staggered_list2_first_row_t2b -> L2先行上到下
+staggered_list2_first_row_b2t -> L2先行下到上
+```
+
+类别 D：双矩阵顺序输出
+
+```text
+sequential_list1_then_list2_col -> L1后L2列
+sequential_list1_then_list2_row -> L1后L2行
+sequential_list2_then_list1_col -> L2后L1列
+sequential_list2_then_list1_row -> L2后L1行
+```
+
+类别 E：单矩阵边缘输出
+
+```text
+edge_single_list1_row_top    -> L1上边
+edge_single_list1_row_bottom -> L1下边
+edge_single_list1_col_left   -> L1左边
+edge_single_list1_col_right  -> L1右边
+edge_single_list2_row_top    -> L2上边
+edge_single_list2_row_bottom -> L2下边
+edge_single_list2_col_left   -> L2左边
+edge_single_list2_col_right  -> L2右边
+```
+
+类别 F：双矩阵边缘输出，list1 后接 list2
+
+```text
+edge_pair_list1_then_list2_row_top    -> L1→L2上边
+edge_pair_list1_then_list2_row_bottom -> L1→L2下边
+edge_pair_list1_then_list2_col_left   -> L1→L2左边
+edge_pair_list1_then_list2_col_right  -> L1→L2右边
+```
+
+类别 G：双矩阵边缘输出，list2 后接 list1
+
+```text
+edge_pair_list2_then_list1_row_top    -> L2→L1上边
+edge_pair_list2_then_list1_row_bottom -> L2→L1下边
+edge_pair_list2_then_list1_col_left   -> L2→L1左边
+edge_pair_list2_then_list1_col_right  -> L2→L1右边
+```
+
 ESP32 端需要运行兼容下面协议的 TCP 服务：
 
 ```text
@@ -245,7 +369,13 @@ AA 55 AA 55 03 01 04 07 0C
 ## 代码调用示例
 
 ```python
-from matrix_output import single_matrix, staggered_matrices, sequential_matrices
+from matrix_output import (
+    single_matrix,
+    staggered_matrices,
+    sequential_matrices,
+    edge_single_matrix,
+    edge_pair_matrices,
+)
 from config import MATRIX1, MATRIX2
 
 # 单矩阵：按列从左到右输出
@@ -267,6 +397,12 @@ steps = sequential_matrices(
     axis='row',
     order='matrix1_first',
 )
+
+# 单矩阵边缘：matrix1 第一行
+steps = edge_single_matrix(MATRIX1, MATRIX2, matrix='matrix1', edge='top')
+
+# 双矩阵边缘：先 matrix2 右列，再 matrix1 右列
+steps = edge_pair_matrices(MATRIX1, MATRIX2, edge='right', order='matrix2_first')
 ```
 
 ## 输出示例
@@ -296,6 +432,8 @@ input_function/
 ├── interactive_send_to_esp32_with_scoring.py    # 配置延迟 + TCP发送ESP32 + 评分保存入口
 ├── interactive_send_to_esp32_pwm_with_scoring.py # 配置延迟 + TCP发送ESP32 PWM版 + 评分保存入口
 ├── interactive_send_to_esp32_hv507_gate_with_scoring.py # 配置延迟 + TCP发送ESP32 HV507 gate版 + 评分保存入口
+├── experiment_pool_config.py            # 随机实验池和选项标签配置
+├── interactive_experiment_send_to_esp32_hv507_gate.py # 随机实验入口
 ├── test.py                             # 断言式测试脚本
 ├── quick_test.py                       # 快速人工检查脚本
 ├── output_scores.csv                   # 评分结果 CSV
@@ -308,9 +446,11 @@ input_function/
 
 - 当前验证逻辑要求两个输入矩阵都是相同大小的方阵。
 - 核心函数支持任意 `N x N` 方阵，不限于默认的 3x3。
-- 单矩阵模式目前只使用 `MATRIX1`。
+- 类别 A 的传统单矩阵模式目前只使用 `MATRIX1`；类别 E 的单矩阵边缘模式可以指定 `MATRIX1` 或 `MATRIX2`。
 - 双矩阵错位输出的总步骤数为 `N + 1`。
 - 双矩阵顺序输出的总步骤数为 `2N`。
+- 单矩阵边缘输出的总步骤数为 `1`。
+- 双矩阵边缘顺序输出的总步骤数为 `2`。
 - 交互脚本中的延迟只影响打印节奏；核心函数会一次性返回完整步骤列表。
 - ESP32 发送入口只负责发送当前步骤的通道 payload，不负责硬件安全关闭。
 - ESP32 发送入口会检查每个通道必须是 `0-127` 范围内的整数，且每帧 payload 长度不能超过 `128`。

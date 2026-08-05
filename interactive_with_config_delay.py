@@ -10,7 +10,7 @@
 """
 
 import time
-from matrix_output import single_matrix, staggered_matrices, sequential_matrices, validate_matrices
+from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices, validate_matrices
 from config import MATRIX1, MATRIX2, OUTPUT_MODES
 from mode_delays_config import get_mode_delay
 
@@ -64,6 +64,10 @@ def run_mode(mode_name: str, matrix1, matrix2, delay: float = 0.5):
             steps = staggered_matrices(matrix1, matrix2, **params)
         elif func_name == 'sequential_matrices':
             steps = sequential_matrices(matrix1, matrix2, **params)
+        elif func_name == 'edge_single_matrix':
+            steps = edge_single_matrix(matrix1, matrix2, **params)
+        elif func_name == 'edge_pair_matrices':
+            steps = edge_pair_matrices(matrix1, matrix2, **params)
         else:
             print(f"  错误: 未知函数 '{func_name}'")
             return None
@@ -115,7 +119,10 @@ def show_mode_delays():
         'A': [],
         'B': [],
         'C': [],
-        'D': []
+        'D': [],
+        'E': [],
+        'F': [],
+        'G': []
     }
 
     # 分类模式
@@ -128,6 +135,12 @@ def show_mode_delays():
             categories['C'].append((mode, delay))
         elif mode.startswith('sequential_'):
             categories['D'].append((mode, delay))
+        elif mode.startswith('edge_single_'):
+            categories['E'].append((mode, delay))
+        elif mode.startswith('edge_pair_list1_'):
+            categories['F'].append((mode, delay))
+        elif mode.startswith('edge_pair_list2_'):
+            categories['G'].append((mode, delay))
 
     # 显示每个类别
     for cat_name, cat_modes in categories.items():
@@ -140,6 +153,12 @@ def show_mode_delays():
                 print("\n类别C: 双矩阵错位 (list2先)")
             elif cat_name == 'D':
                 print("\n类别D: 顺序输出")
+            elif cat_name == 'E':
+                print("\n类别E: 单矩阵边缘输出")
+            elif cat_name == 'F':
+                print("\n类别F: 双矩阵边缘输出 (list1先)")
+            elif cat_name == 'G':
+                print("\n类别G: 双矩阵边缘输出 (list2先)")
 
             for mode, delay in sorted(cat_modes):
                 print(f"  {mode:<35} {delay:<10.2f}")
