@@ -82,6 +82,7 @@ MATRIX2 = [
 - `interactive_experiment_send_to_esp32_hv507_gate.py`：随机实验入口，从实验池生成随机 trial 顺序，发送刺激后记录受试者答案、反应时间和重播次数。
 - `interactive_experiment_send_to_esp32_hv507_gate_autoff.py`：面向 `esp32_fast_main_hv507_gate_autoff.py` 的随机实验入口，实验逻辑同上，但发送协议使用 auto-off 控制字节。
 - `interactive_send_to_esp32_hv507_gate_autoff_guard.py`：PC 端最小测试入口，复用 auto-off 协议，但在下一帧发送前等待 `auto_off_time + guard`，用于避免下一帧提前截断上一帧 BL 高电平。
+- `interactive_learning_send_to_esp32_hv507_gate_autoff.py`：学习入口，按实验池有效模式顺序提示标签并播放信号，不答题，记录每个模式的学习播放次数。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -189,6 +190,12 @@ python interactive_send_to_esp32_hv507_gate_autoff_guard.py
 ```text
 1. 普通模式选择 + 评分
 2. 随机实验池
+```
+
+运行学习入口：
+
+```bash
+python interactive_learning_send_to_esp32_hv507_gate_autoff.py
 ```
 
 启动后会先询问是否 `dry-run`：
@@ -326,6 +333,8 @@ INTER_FRAME_GUARD_SEC = 0.20
 - `MAX_REPLAYS`：每题最多允许重播次数。
 - `RANDOM_SEED`：`None` 表示真随机，填整数可复现实验顺序。
 - `RESULTS_CSV`：trial 结果文件，默认 `experiment_results.csv`。
+- `LEARNING_MAX_PLAYS`：学习阶段每个有效模式最多播放几次，默认 `5`；这个次数和 `TRIAL_POOL` 中正式实验随机到的次数无关。
+- `LEARNING_CSV`：学习阶段结果文件，默认 `learning_results.csv`。
 
 实验启动时会选择：
 
@@ -346,6 +355,30 @@ timestamp,session_id,run_mode,trial_index,true_mode,true_label,answer_mode,answe
 - `test`：受试模式，屏幕不会提示本题正确标签。
 - `是否显示本次trial帧内容`：控制屏幕上是否打印 channels 和 frame；训练模式默认 `y`，受试模式默认 `n`。
 - 以上设置在 dry-run 和真实 ESP32 连接模式下都生效。
+
+学习入口使用同一个 `experiment_pool_config.py`，但行为不同：
+
+- 学习池来自 `TRIAL_POOL` 中所有 `count > 0` 的模式。
+- 每个有效模式必须进入学习流程一次，顺序就是 `TRIAL_POOL` 中的配置顺序。
+- `TRIAL_POOL` 中的 count 不会展开成多次学习；它只决定正式随机实验里出现几次。
+- 屏幕会先显示该模式的 `CHOICE_LABELS` 标签，然后受试者按 `Enter` 或 `p` 播放信号。
+- 每个模式最多播放 `LEARNING_MAX_PLAYS` 次；受试者提前学会后按 `n` 进入下一个模式。
+- 学习阶段不答题，不记录反应时间。
+- 真实发送模式会写入 `LEARNING_CSV`；dry-run 不写入学习 CSV。
+
+学习 CSV 字段为：
+
+```text
+timestamp,session_id,learning_index,mode,label,play_count,max_plays,status
+```
+
+其中 `status` 可为：
+
+```text
+learned      # 受试者手动进入下一个模式
+max_reached  # 达到最大学习次数后进入下一个模式
+interrupted  # 中途退出学习
+```
 
 当前可以放入 `TRIAL_POOL` 的模式必须来自 `config.py` 的 `OUTPUT_MODES`。下面这些模式都已经在 `experiment_pool_config.py` 里配置了受试者可见标签。
 
@@ -519,6 +552,7 @@ input_function/
 ├── experiment_pool_config.py            # 随机实验池和选项标签配置
 ├── interactive_experiment_send_to_esp32_hv507_gate.py # 随机实验入口
 ├── interactive_experiment_send_to_esp32_hv507_gate_autoff.py # 随机实验auto-off入口
+├── interactive_learning_send_to_esp32_hv507_gate_autoff.py # 学习入口
 ├── test.py                             # 断言式测试脚本
 ├── quick_test.py                       # 快速人工检查脚本
 ├── output_scores.csv                   # 评分结果 CSV
@@ -542,6 +576,7 @@ input_function/
 - ESP32 PWM 发送入口默认不启用 PWM；启用后每帧会占用 1 字节 control byte，因此每帧最多 `127` 个通道。
 - ESP32 HV507 gate 发送入口每个正常输出步骤都会占用 1 字节 control byte，因此每帧最多 `127` 个通道；退出时会尝试发送 gate-off，但最终硬件兜底仍应由 ESP32 端断连处理负责。
 - `interactive_send_to_esp32_hv507_gate_autoff_guard.py` 是 PC 端最小测试方案：它通过增加帧间等待避免下一帧提前截断上一帧，但 ESP32 端仍不是完整的内部序列播放器。
+- `interactive_learning_send_to_esp32_hv507_gate_autoff.py` 的学习次数上限只看 `LEARNING_MAX_PLAYS`，不读取 `TRIAL_POOL` 中的出现次数。
 
 ## 如何扩展
 

@@ -65,9 +65,15 @@ CHOICE_LABELS = {
 # 每题最多允许重播的次数。超过后本题记为未作答并进入下一题。
 MAX_REPLAYS = 3
 
+# 学习阶段每个有效模式最多允许播放几次；和TRIAL_POOL里的正式实验次数无关。
+LEARNING_MAX_PLAYS = 5
+
 # None 表示每次真随机；填整数可复现实验顺序。
 RANDOM_SEED = None
 
 # 正式实验结果和随机顺序记录。
 RESULTS_CSV = "experiment_results.csv"
 SEQUENCE_CSV_TEMPLATE = "experiment_sequence_{session_id}.csv"
+
+# 学习阶段记录文件。
+LEARNING_CSV = "learning_results.csv"
