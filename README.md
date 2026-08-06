@@ -78,7 +78,9 @@ MATRIX2 = [
 - `interactive_send_to_esp32_with_scoring.py`：同时支持模式默认延迟、TCP 逐步发送到 ESP32、发送后评分和 CSV 保存。
 - `interactive_send_to_esp32_pwm_with_scoring.py`：面向 `esp32_fast_main_pwm.py`，在 ESP32 TCP 发送基础上可选附加 PWM 控制字节。
 - `interactive_send_to_esp32_hv507_gate_with_scoring.py`：面向 `esp32_fast_main_hv507_gate.py`，使用 HV507 gate 控制帧发送输出步骤，并在退出时请求关闭输出 gate。
+- `interactive_send_to_esp32_hv507_gate_autoff_with_scoring.py`：面向 `esp32_fast_main_hv507_gate_autoff.py`，使用带 auto-off 时间码的 HV507 gate 控制帧发送输出步骤。
 - `interactive_experiment_send_to_esp32_hv507_gate.py`：随机实验入口，从实验池生成随机 trial 顺序，发送刺激后记录受试者答案、反应时间和重播次数。
+- `interactive_experiment_send_to_esp32_hv507_gate_autoff.py`：面向 `esp32_fast_main_hv507_gate_autoff.py` 的随机实验入口，实验逻辑同上，但发送协议使用 auto-off 控制字节。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -157,10 +159,22 @@ python interactive_send_to_esp32_pwm_with_scoring.py
 python interactive_send_to_esp32_hv507_gate_with_scoring.py
 ```
 
+运行 ESP32 HV507 gate auto-off 发送版本：
+
+```bash
+python interactive_send_to_esp32_hv507_gate_autoff_with_scoring.py
+```
+
 运行随机实验版本：
 
 ```bash
 python interactive_experiment_send_to_esp32_hv507_gate.py
+```
+
+运行随机实验 auto-off 版本：
+
+```bash
+python interactive_experiment_send_to_esp32_hv507_gate_autoff.py
 ```
 
 启动后会先询问是否 `dry-run`：
@@ -236,6 +250,38 @@ AA 55 AA 55 01 80 80
 ```
 
 如果 PC 端发送 gate-off 失败，程序仍会关闭 TCP 连接；ESP32 端在客户端断开时也会调用 `force_outputs_off()` 作为本地安全兜底。
+
+HV507 gate auto-off 发送版本面向 `esp32_fast_main_hv507_gate_autoff.py`。协议外壳不变，但正常输出帧的 control byte 会携带 auto-off 时间码：
+
+```text
+[0xE0 | duration_code, channel1, channel2, ...]
+```
+
+其中：
+
+```text
+duration_code = ceil(delay_ms / 50ms)
+auto_off_ms = duration_code * 50ms
+```
+
+`duration_code` 会限制在 `1..31`，因此最短 auto-off 为 `50ms`，最长为 `1550ms`。例如模式 delay 为 `0.3` 秒时：
+
+```text
+duration_code = 6
+control_byte = 0xE6
+```
+
+步骤 `[1, 4, 7]` 会发送：
+
+```text
+AA 55 AA 55 04 E6 01 04 07 F2
+```
+
+退出时仍会尽力发送 gate-off：
+
+```text
+AA 55 AA 55 01 80 80
+```
 
 随机实验版本使用 `experiment_pool_config.py` 配置实验池：
 
