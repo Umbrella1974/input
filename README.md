@@ -81,6 +81,7 @@ MATRIX2 = [
 - `interactive_send_to_esp32_hv507_gate_autoff_with_scoring.py`：面向 `esp32_fast_main_hv507_gate_autoff.py`，使用带 auto-off 时间码的 HV507 gate 控制帧发送输出步骤。
 - `interactive_experiment_send_to_esp32_hv507_gate.py`：随机实验入口，从实验池生成随机 trial 顺序，发送刺激后记录受试者答案、反应时间和重播次数。
 - `interactive_experiment_send_to_esp32_hv507_gate_autoff.py`：面向 `esp32_fast_main_hv507_gate_autoff.py` 的随机实验入口，实验逻辑同上，但发送协议使用 auto-off 控制字节。
+- `interactive_send_to_esp32_hv507_gate_autoff_guard.py`：PC 端最小测试入口，复用 auto-off 协议，但在下一帧发送前等待 `auto_off_time + guard`，用于避免下一帧提前截断上一帧 BL 高电平。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -175,6 +176,19 @@ python interactive_experiment_send_to_esp32_hv507_gate.py
 
 ```bash
 python interactive_experiment_send_to_esp32_hv507_gate_autoff.py
+```
+
+运行 HV507 gate auto-off + PC frame guard 测试入口：
+
+```bash
+python interactive_send_to_esp32_hv507_gate_autoff_guard.py
+```
+
+该入口启动后会先选择：
+
+```text
+1. 普通模式选择 + 评分
+2. 随机实验池
 ```
 
 启动后会先询问是否 `dry-run`：
@@ -282,6 +296,28 @@ AA 55 AA 55 04 E6 01 04 07 F2
 ```text
 AA 55 AA 55 01 80 80
 ```
+
+HV507 gate auto-off + PC frame guard 测试入口是在上一版 auto-off 基础上的 PC 端最小改动。它的原因是：PC 端原来在 `sendall()` 返回后等待 `delay` 秒再发下一帧，但 ESP32 端真正的 BL 高电平开始时间发生在“收到帧、解析、SPI 写入、latch、打开 BL”之后。如果下一帧在当前帧 auto-off 前到达，ESP32 处理下一帧时会先 `_blank_outputs()`，上一帧 BL 高电平就会被提前截断。
+
+这个测试入口不改变 control byte、payload、checksum，也不改变 ESP32 端代码，只改变 PC 端下一帧发送前的等待策略：
+
+```text
+PC下一帧前等待 = auto_off_time + INTER_FRAME_GUARD_SEC
+```
+
+当前：
+
+```text
+INTER_FRAME_GUARD_SEC = 0.20
+```
+
+例如模式 delay 为 `0.3` 秒时，ESP32 auto-off 仍然是 `300ms`，PC 端会在两帧之间等待：
+
+```text
+300ms + 200ms = 500ms
+```
+
+这样用于测试“BL 高电平不足 300ms/500ms 是否来自下一帧过早到达”。如果测量结果变稳定，说明后续可以保留 PC guard，或者进一步把排队/序列播放逻辑下沉到 ESP32。
 
 随机实验版本使用 `experiment_pool_config.py` 配置实验池：
 
@@ -478,8 +514,11 @@ input_function/
 ├── interactive_send_to_esp32_with_scoring.py    # 配置延迟 + TCP发送ESP32 + 评分保存入口
 ├── interactive_send_to_esp32_pwm_with_scoring.py # 配置延迟 + TCP发送ESP32 PWM版 + 评分保存入口
 ├── interactive_send_to_esp32_hv507_gate_with_scoring.py # 配置延迟 + TCP发送ESP32 HV507 gate版 + 评分保存入口
+├── interactive_send_to_esp32_hv507_gate_autoff_with_scoring.py # 配置延迟 + TCP发送ESP32 HV507 gate auto-off版 + 评分保存入口
+├── interactive_send_to_esp32_hv507_gate_autoff_guard.py # auto-off + PC帧间guard测试入口
 ├── experiment_pool_config.py            # 随机实验池和选项标签配置
 ├── interactive_experiment_send_to_esp32_hv507_gate.py # 随机实验入口
+├── interactive_experiment_send_to_esp32_hv507_gate_autoff.py # 随机实验auto-off入口
 ├── test.py                             # 断言式测试脚本
 ├── quick_test.py                       # 快速人工检查脚本
 ├── output_scores.csv                   # 评分结果 CSV
@@ -502,6 +541,7 @@ input_function/
 - ESP32 发送入口会检查每个通道必须是 `0-127` 范围内的整数，且每帧 payload 长度不能超过 `128`。
 - ESP32 PWM 发送入口默认不启用 PWM；启用后每帧会占用 1 字节 control byte，因此每帧最多 `127` 个通道。
 - ESP32 HV507 gate 发送入口每个正常输出步骤都会占用 1 字节 control byte，因此每帧最多 `127` 个通道；退出时会尝试发送 gate-off，但最终硬件兜底仍应由 ESP32 端断连处理负责。
+- `interactive_send_to_esp32_hv507_gate_autoff_guard.py` 是 PC 端最小测试方案：它通过增加帧间等待避免下一帧提前截断上一帧，但 ESP32 端仍不是完整的内部序列播放器。
 
 ## 如何扩展
 
