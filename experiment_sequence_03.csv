@@ -1,7 +1,0 @@
-session_id,trial_index,mode,label
-03,1,single_list1_col_l2r,列→
-03,2,single_list1_col_l2r,列→
-03,3,edge_single_list1_row_top,L1上边
-03,4,edge_single_list1_row_bottom,L1下边
-03,5,edge_pair_list1_then_list2_row_top,L1→L2上边
-03,6,edge_single_list1_row_top,L1上边
