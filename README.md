@@ -343,7 +343,7 @@ INTER_FRAME_GUARD_SEC = 0.20
 - 是否显示本次 trial 帧内容：训练模式默认显示；受试模式固定隐藏，不再询问。
 - 是否 dry-run：dry-run 不连接 ESP32，也不写实验 CSV。
 
-训练模式会显示本题正确的 `CHOICE_LABELS` 标签；受试模式不会显示正确标签。真实发送模式会保存完整随机顺序到 `experiment_sequence_{session_id}.csv`，每题结果写入 `experiment_results.csv`，字段包含：
+训练模式会显示本题正确的 `CHOICE_LABELS` 标签；受试模式不会显示正确标签。真实发送模式会先连接 ESP32，连接成功后才保存完整随机顺序到 `experiment_sequence_{session_id}.csv`；每题结果写入 `experiment_results.csv`，字段包含：
 
 ```text
 timestamp,session_id,run_mode,trial_index,true_mode,true_label,answer_mode,answer_label,is_correct,reaction_time_sec,replay_count,status

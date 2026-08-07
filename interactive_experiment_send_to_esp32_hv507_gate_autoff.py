@@ -94,6 +94,14 @@ def main():
     for mode in choice_modes:
         print(f"  {experiment.get_label(mode)}")
 
+    sock = None
+    if not dry_run:
+        try:
+            sock = gate.base.connect_esp32(host, port)
+        except Exception as e:
+            print(f"连接ESP32失败: {e}")
+            return
+
     if dry_run:
         print("\ndry-run模式：不写入CSV")
         if run_mode == "train":
@@ -104,14 +112,6 @@ def main():
             print("受试模式：随机顺序已生成，但不在屏幕显示正确标签")
     else:
         experiment.save_sequence(session_id, sequence)
-
-    sock = None
-    if not dry_run:
-        try:
-            sock = gate.base.connect_esp32(host, port)
-        except Exception as e:
-            print(f"连接ESP32失败: {e}")
-            return
 
     try:
         for trial_index, true_mode in enumerate(sequence, start=1):
