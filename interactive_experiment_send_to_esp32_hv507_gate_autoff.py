@@ -26,9 +26,10 @@ def send_steps_once(sock, steps, delay: float, dry_run: bool, show_frames: bool)
     control_byte = gate.build_output_control_byte(delay)
 
     if dry_run:
-        print("\n=== dry-run: 模拟发送本次trial刺激 ===")
-        print(f"auto-off换算: {gate.describe_delay_autoff(delay)}")
-        print(f"正常输出控制: {gate.describe_control_byte(control_byte)}")
+        if show_frames:
+            print("\n=== dry-run: 模拟发送本次trial刺激 ===")
+            print(f"auto-off换算: {gate.describe_delay_autoff(delay)}")
+            print(f"正常输出控制: {gate.describe_control_byte(control_byte)}")
 
         for i, step in enumerate(steps, start=1):
             frame = gate.build_frame(step, delay)
@@ -37,12 +38,11 @@ def send_steps_once(sock, steps, delay: float, dry_run: bool, show_frames: bool)
             if show_frames:
                 print(f"  步骤 {i}: channels={step}")
                 print(f"          frame={gate.base.frame_to_hex(frame)}")
-            else:
-                print(f"  已模拟发送步骤 {i}/{len(steps)}")
         return first_send_time
 
-    print(f"auto-off换算: {gate.describe_delay_autoff(delay)}")
-    print(f"正常输出控制: {gate.describe_control_byte(control_byte)}")
+    if show_frames:
+        print(f"auto-off换算: {gate.describe_delay_autoff(delay)}")
+        print(f"正常输出控制: {gate.describe_control_byte(control_byte)}")
 
     for i, step in enumerate(steps, start=1):
         frame = gate.build_frame(step, delay)
@@ -52,8 +52,6 @@ def send_steps_once(sock, steps, delay: float, dry_run: bool, show_frames: bool)
         if show_frames:
             print(f"  已发送步骤 {i}/{len(steps)}: {step}")
             print(f"          frame={gate.base.frame_to_hex(frame)}")
-        else:
-            print(f"  已发送步骤 {i}/{len(steps)}")
         if i < len(steps):
             time.sleep(delay)
 

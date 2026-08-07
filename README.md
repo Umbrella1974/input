@@ -340,7 +340,7 @@ INTER_FRAME_GUARD_SEC = 0.20
 
 - `session_id`：直接回车自动生成。
 - `run_mode`：`train` 训练模式或 `test` 受试模式。
-- 是否显示本次 trial 帧内容：训练模式默认显示，受试模式默认隐藏。
+- 是否显示本次 trial 帧内容：训练模式默认显示；受试模式固定隐藏，不再询问。
 - 是否 dry-run：dry-run 不连接 ESP32，也不写实验 CSV。
 
 训练模式会显示本题正确的 `CHOICE_LABELS` 标签；受试模式不会显示正确标签。真实发送模式会保存完整随机顺序到 `experiment_sequence_{session_id}.csv`，每题结果写入 `experiment_results.csv`，字段包含：
@@ -353,8 +353,10 @@ timestamp,session_id,run_mode,trial_index,true_mode,true_label,answer_mode,answe
 
 - `train`：训练模式，屏幕会提示本题正确标签，例如 `训练提示: 本次信号 = 列→`。
 - `test`：受试模式，屏幕不会提示本题正确标签。
-- `是否显示本次trial帧内容`：控制屏幕上是否打印 channels 和 frame；训练模式默认 `y`，受试模式默认 `n`。
+- `test`：受试模式固定静默发送，不显示 channels、frame、control byte、auto-off 换算、步骤进度或本 trial 共有几步，避免受试者通过屏幕提示推断刺激结构。
+- `是否显示本次trial帧内容`：训练模式下控制屏幕上是否打印 channels 和 frame；受试模式不会询问该选项。
 - 以上设置在 dry-run 和真实 ESP32 连接模式下都生效。
+- 每个 trial 在真正发送前都会等待按下 `Enter`；输入 `q` 可以在发送前退出实验。因此真实发送模式连接 ESP32 并等待上电准备后，不会自动开始第一个 trial。
 
 学习入口使用同一个 `experiment_pool_config.py`，但行为不同：
 

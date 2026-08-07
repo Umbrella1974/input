@@ -73,6 +73,9 @@ def choose_run_mode() -> str:
 
 def choose_show_frames(run_mode: str) -> bool:
     """选择是否在屏幕上显示每个trial的帧内容。"""
+    if run_mode == "test":
+        return False
+
     default = run_mode == "train"
     return gate.base.get_yes_no("是否显示本次trial帧内容？", default=default)
 
@@ -190,7 +193,8 @@ def send_steps_once(sock, steps, delay: float, dry_run: bool, show_frames: bool)
     first_send_time = None
 
     if dry_run:
-        print("\n=== dry-run: 模拟发送本次trial刺激 ===")
+        if show_frames:
+            print("\n=== dry-run: 模拟发送本次trial刺激 ===")
         for i, step in enumerate(steps, start=1):
             frame = gate.build_frame(step)
             if first_send_time is None:
@@ -198,8 +202,6 @@ def send_steps_once(sock, steps, delay: float, dry_run: bool, show_frames: bool)
             if show_frames:
                 print(f"  步骤 {i}: channels={step}")
                 print(f"          frame={gate.base.frame_to_hex(frame)}")
-            else:
-                print(f"  已模拟发送步骤 {i}/{len(steps)}")
         return first_send_time
 
     for i, step in enumerate(steps, start=1):
@@ -210,12 +212,21 @@ def send_steps_once(sock, steps, delay: float, dry_run: bool, show_frames: bool)
         if show_frames:
             print(f"  已发送步骤 {i}/{len(steps)}: {step}")
             print(f"          frame={gate.base.frame_to_hex(frame)}")
-        else:
-            print(f"  已发送步骤 {i}/{len(steps)}")
         if i < len(steps):
             time.sleep(delay)
 
     return first_send_time
+
+
+def wait_for_trial_start(trial_index: int) -> bool:
+    """等待用户按回车开始本trial；返回False表示退出实验。"""
+    while True:
+        choice = input(f"\nTrial {trial_index}: 按 Enter 开始本试次（输入 q 退出实验）: ").strip().lower()
+        if not choice:
+            return True
+        if choice in ("q", "x", "quit", "exit"):
+            return False
+        print("  错误: 请按 Enter 开始，或输入 q 退出")
 
 
 def print_answer_options(choice_modes):
@@ -296,9 +307,11 @@ def run_trial(
     try:
         steps = gate.base.compute_mode_steps(true_mode, gate.base.MATRIX1, gate.base.MATRIX2)
         gate.validate_steps(steps)
-        print(f"\nTrial {trial_index}: 准备发送刺激，共 {len(steps)} 个步骤，delay={delay:.2f}秒")
         if run_mode == "train":
+            print(f"\nTrial {trial_index}: 准备发送刺激，共 {len(steps)} 个步骤，delay={delay:.2f}秒")
             print(f"训练提示: 本次信号 = {get_label(true_mode)}")
+        if not wait_for_trial_start(trial_index):
+            return "exit"
         start_time = send_steps_once(sock, steps, delay, dry_run, show_frames)
     except Exception as e:
         print(f"  发送失败: {e}")

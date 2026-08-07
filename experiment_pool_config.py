@@ -7,23 +7,27 @@ CHOICE_LABELS 定义受试者界面看到的代称；这些代称会映射回真
 
 # 实验池：模式名称必须存在于 config.py 的 OUTPUT_MODES 中。
 TRIAL_POOL = {
-    "single_list1_col_l2r": 2,
-    "edge_single_list1_row_top": 2,
-    "edge_single_list1_row_bottom": 1,
-    "edge_pair_list1_then_list2_row_top":1
+    "edge_single_list1_row_top": 3,
+    "edge_single_list1_row_bottom": 3,
+    "edge_single_list1_col_left": 3,
+    "edge_single_list1_col_right": 3,
+    "single_list1_col_r2l":3,
+    "single_list1_col_t2b":3,
+    "single_list1_row_b2t":3,
+    "single_list1_row_l2r":3
 
 }
 
 # 受试者看到的选项标签。标签应在本轮实验池中保持唯一。
 CHOICE_LABELS = {
     "single_list1_col_l2r": "列→",
-    "single_list1_col_r2l": "列←",
-    "single_list1_col_t2b": "上到下列",
+    "single_list1_col_r2l": "从右到左",
+    "single_list1_col_t2b": "从左到右",
     "single_list1_col_b2t": "下到上列",
-    "single_list1_row_l2r": "左到右行",
+    "single_list1_row_l2r": "从上到下",
     "single_list1_row_r2l": "右到左行",
     "single_list1_row_t2b": "行↓",
-    "single_list1_row_b2t": "行↑",
+    "single_list1_row_b2t": "从下到上",
     "staggered_list1_first_col_l2r": "L1先列->",
     "staggered_list1_first_col_r2l": "L1先列<-",
     "staggered_list1_first_col_t2b": "L1先列上到下",
@@ -44,10 +48,10 @@ CHOICE_LABELS = {
     "sequential_list1_then_list2_row": "L1后L2行",
     "sequential_list2_then_list1_col": "L2后L1列",
     "sequential_list2_then_list1_row": "L2后L1行",
-    "edge_single_list1_row_top": "L1上边",
-    "edge_single_list1_row_bottom": "L1下边",
-    "edge_single_list1_col_left": "L1左边",
-    "edge_single_list1_col_right": "L1右边",
+    "edge_single_list1_row_top": "上边",
+    "edge_single_list1_row_bottom": "下边",
+    "edge_single_list1_col_left": "左边",
+    "edge_single_list1_col_right": "右边",
     "edge_single_list2_row_top": "L2上边",
     "edge_single_list2_row_bottom": "L2下边",
     "edge_single_list2_col_left": "L2左边",

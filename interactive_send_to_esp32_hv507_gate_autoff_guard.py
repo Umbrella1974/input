@@ -94,10 +94,11 @@ def experiment_send_steps_once(sock, steps, delay: float, dry_run: bool, show_fr
     wait_sec = get_inter_frame_wait_sec(delay)
 
     if dry_run:
-        print("\n=== dry-run: 模拟发送本次trial刺激 ===")
-        print(f"auto-off换算: {autoff.describe_delay_autoff(delay)}")
-        print(f"正常输出控制: {autoff.describe_control_byte(control_byte)}")
-        print(describe_guard_timing(delay))
+        if show_frames:
+            print("\n=== dry-run: 模拟发送本次trial刺激 ===")
+            print(f"auto-off换算: {autoff.describe_delay_autoff(delay)}")
+            print(f"正常输出控制: {autoff.describe_control_byte(control_byte)}")
+            print(describe_guard_timing(delay))
 
         for i, step in enumerate(steps, start=1):
             frame = autoff.build_frame(step, delay)
@@ -106,15 +107,14 @@ def experiment_send_steps_once(sock, steps, delay: float, dry_run: bool, show_fr
             if show_frames:
                 print(f"  步骤 {i}: channels={step}")
                 print(f"          frame={autoff.base.frame_to_hex(frame)}")
-            else:
-                print(f"  已模拟发送步骤 {i}/{len(steps)}")
-            if i < len(steps):
+            if show_frames and i < len(steps):
                 print(f"          PC下一帧前等待: {wait_sec:.3f}s")
         return first_send_time
 
-    print(f"auto-off换算: {autoff.describe_delay_autoff(delay)}")
-    print(f"正常输出控制: {autoff.describe_control_byte(control_byte)}")
-    print(describe_guard_timing(delay))
+    if show_frames:
+        print(f"auto-off换算: {autoff.describe_delay_autoff(delay)}")
+        print(f"正常输出控制: {autoff.describe_control_byte(control_byte)}")
+        print(describe_guard_timing(delay))
 
     for i, step in enumerate(steps, start=1):
         frame = autoff.build_frame(step, delay)
@@ -124,10 +124,9 @@ def experiment_send_steps_once(sock, steps, delay: float, dry_run: bool, show_fr
         if show_frames:
             print(f"  已发送步骤 {i}/{len(steps)}: {step}")
             print(f"          frame={autoff.base.frame_to_hex(frame)}")
-        else:
-            print(f"  已发送步骤 {i}/{len(steps)}")
         if i < len(steps):
-            print(f"  等待auto-off + guard后发送下一帧: {wait_sec:.3f}s")
+            if show_frames:
+                print(f"  等待auto-off + guard后发送下一帧: {wait_sec:.3f}s")
             time.sleep(wait_sec)
 
     return first_send_time
