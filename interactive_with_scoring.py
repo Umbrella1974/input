@@ -14,7 +14,7 @@ import time
 import csv
 import os
 from datetime import datetime
-from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices, validate_matrices
+from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices, custom_steps, validate_matrices
 from config import MATRIX1, MATRIX2, OUTPUT_MODES
 
 CSV_FILE = "output_scores.csv"
@@ -73,6 +73,8 @@ def run_mode(mode_name: str, matrix1, matrix2, delay: float = 0.5):
             steps = edge_single_matrix(matrix1, matrix2, **params)
         elif func_name == 'edge_pair_matrices':
             steps = edge_pair_matrices(matrix1, matrix2, **params)
+        elif func_name == 'custom_steps':
+            steps = custom_steps(matrix1, matrix2, **params)
         else:
             print(f"  错误: 未知函数 '{func_name}'")
             return None

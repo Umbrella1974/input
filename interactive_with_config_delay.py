@@ -10,7 +10,7 @@
 """
 
 import time
-from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices, validate_matrices
+from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices, custom_steps, validate_matrices
 from config import MATRIX1, MATRIX2, OUTPUT_MODES
 from mode_delays_config import get_mode_delay
 
@@ -68,6 +68,8 @@ def run_mode(mode_name: str, matrix1, matrix2, delay: float = 0.5):
             steps = edge_single_matrix(matrix1, matrix2, **params)
         elif func_name == 'edge_pair_matrices':
             steps = edge_pair_matrices(matrix1, matrix2, **params)
+        elif func_name == 'custom_steps':
+            steps = custom_steps(matrix1, matrix2, **params)
         else:
             print(f"  错误: 未知函数 '{func_name}'")
             return None
@@ -122,7 +124,8 @@ def show_mode_delays():
         'D': [],
         'E': [],
         'F': [],
-        'G': []
+        'G': [],
+        'H': []
     }
 
     # 分类模式
@@ -141,6 +144,8 @@ def show_mode_delays():
             categories['F'].append((mode, delay))
         elif mode.startswith('edge_pair_list2_'):
             categories['G'].append((mode, delay))
+        elif mode.startswith('custom_'):
+            categories['H'].append((mode, delay))
 
     # 显示每个类别
     for cat_name, cat_modes in categories.items():
@@ -159,6 +164,8 @@ def show_mode_delays():
                 print("\n类别F: 双矩阵边缘输出 (list1先)")
             elif cat_name == 'G':
                 print("\n类别G: 双矩阵边缘输出 (list2先)")
+            elif cat_name == 'H':
+                print("\n类别H: 自定义MATRIX1两步输出")
 
             for mode, delay in sorted(cat_modes):
                 print(f"  {mode:<35} {delay:<10.2f}")

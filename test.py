@@ -13,8 +13,10 @@ from matrix_output import (
     sequential_matrices,
     edge_single_matrix,
     edge_pair_matrices,
+    custom_steps,
     validate_matrices
 )
+from config import MATRIX1 as CONFIG_MATRIX1, MATRIX2 as CONFIG_MATRIX2, OUTPUT_MODES
 
 # 测试矩阵
 MATRIX1 = [
@@ -198,6 +200,28 @@ def test_validation():
         print(f"  正确检测到非方阵: {e}")
 
 
+def test_custom_config_modes():
+    """测试config.py中显式配置的自定义两步模式。"""
+    print("\n测试自定义两步模式...")
+
+    expected_modes = {
+        'custom_list1_center_col_then_outer': [[84, 85, 86], [82, 81, 83, 87, 88, 89]],
+        'custom_list1_outer_then_center_col': [[82, 81, 83, 87, 88, 89], [84, 85, 86]],
+        'custom_list1_center_then_outer': [[85], [81, 82, 83, 84, 86, 87, 88, 89]],
+        'custom_list1_outer_then_center': [[81, 82, 83, 84, 86, 87, 88, 89], [85]],
+    }
+
+    for mode_name, expected in expected_modes.items():
+        assert mode_name in OUTPUT_MODES, f"自定义模式未定义: {mode_name}"
+        func_name, params = OUTPUT_MODES[mode_name]
+        assert func_name == 'custom_steps', f"{mode_name} 应使用custom_steps，实际为 {func_name}"
+
+        steps = custom_steps(CONFIG_MATRIX1, CONFIG_MATRIX2, **params)
+        assert steps == expected, f"{mode_name} 输出错误: {steps}"
+
+    print("  自定义两步模式测试通过")
+
+
 def main():
     """运行所有测试"""
     print("开始矩阵输出测试...")
@@ -208,6 +232,7 @@ def main():
     test_sequential_matrices()
     test_edge_outputs()
     test_validation()
+    test_custom_config_modes()
 
     print("\n所有测试通过！")
 

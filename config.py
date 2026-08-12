@@ -78,6 +78,12 @@ OUTPUT_MODES = {
     'edge_pair_list2_then_list1_row_bottom': ('edge_pair_matrices', {'edge': 'bottom', 'order': 'matrix2_first'}),
     'edge_pair_list2_then_list1_col_left': ('edge_pair_matrices', {'edge': 'left', 'order': 'matrix2_first'}),
     'edge_pair_list2_then_list1_col_right': ('edge_pair_matrices', {'edge': 'right', 'order': 'matrix2_first'}),
+
+    # Category H: explicit MATRIX1 center/outer two-step modes
+    'custom_list1_center_col_then_outer': ('custom_steps', {'steps': [[84, 85, 86], [82, 81, 83, 87, 88, 89]]}),
+    'custom_list1_outer_then_center_col': ('custom_steps', {'steps': [[82, 81, 83, 87, 88, 89], [84, 85, 86]]}),
+    'custom_list1_center_then_outer': ('custom_steps', {'steps': [[85], [81, 82, 83, 84, 86, 87, 88, 89]]}),
+    'custom_list1_outer_then_center': ('custom_steps', {'steps': [[81, 82, 83, 84, 86, 87, 88, 89], [85]]}),
 }
 
 # 模式分类
@@ -139,5 +145,11 @@ CATEGORIES = {
         'edge_pair_list2_then_list1_row_bottom',
         'edge_pair_list2_then_list1_col_left',
         'edge_pair_list2_then_list1_col_right',
+    ],
+    'H': [
+        'custom_list1_center_col_then_outer',
+        'custom_list1_outer_then_center_col',
+        'custom_list1_center_then_outer',
+        'custom_list1_outer_then_center',
     ],
 }

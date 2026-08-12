@@ -26,6 +26,7 @@ from matrix_output import (
     sequential_matrices,
     edge_single_matrix,
     edge_pair_matrices,
+    custom_steps,
     validate_matrices,
 )
 from mode_delays_config import MODE_DELAYS, get_mode_delay
@@ -90,6 +91,8 @@ def compute_mode_steps(mode_name: str, matrix1, matrix2):
         return edge_single_matrix(matrix1, matrix2, **params)
     if func_name == "edge_pair_matrices":
         return edge_pair_matrices(matrix1, matrix2, **params)
+    if func_name == "custom_steps":
+        return custom_steps(matrix1, matrix2, **params)
 
     raise ValueError(f"未知函数: {func_name}")
 
@@ -234,6 +237,7 @@ def show_mode_delays():
         "E": [],
         "F": [],
         "G": [],
+        "H": [],
     }
 
     for mode, delay in MODE_DELAYS.items():
@@ -251,6 +255,8 @@ def show_mode_delays():
             categories["F"].append((mode, delay))
         elif mode.startswith("edge_pair_list2_"):
             categories["G"].append((mode, delay))
+        elif mode.startswith("custom_"):
+            categories["H"].append((mode, delay))
 
     category_titles = {
         "A": "类别A: 单个矩阵",
@@ -260,6 +266,7 @@ def show_mode_delays():
         "E": "类别E: 单矩阵边缘输出",
         "F": "类别F: 双矩阵边缘输出 (list1先)",
         "G": "类别G: 双矩阵边缘输出 (list2先)",
+        "H": "类别H: 自定义MATRIX1两步输出",
     }
 
     for category_name, modes in categories.items():

@@ -64,6 +64,10 @@ CHOICE_LABELS = {
     "edge_pair_list2_then_list1_row_bottom": "L2→L1下边",
     "edge_pair_list2_then_list1_col_left": "L2→L1左边",
     "edge_pair_list2_then_list1_col_right": "L2→L1右边",
+    "custom_list1_center_col_then_outer": "中列→外围",
+    "custom_list1_outer_then_center_col": "外围→中列",
+    "custom_list1_center_then_outer": "中心→外围",
+    "custom_list1_outer_then_center": "外围→中心",
 }
 
 # 每题最多允许重播的次数。超过后本题记为未作答并进入下一题。

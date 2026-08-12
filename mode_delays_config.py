@@ -62,6 +62,12 @@ MODE_DELAYS = {
     'edge_pair_list2_then_list1_row_bottom': 0.5,
     'edge_pair_list2_then_list1_col_left': 0.5,
     'edge_pair_list2_then_list1_col_right': 0.5,
+
+    # Category H: explicit MATRIX1 center/outer two-step modes
+    'custom_list1_center_col_then_outer': 0.3,
+    'custom_list1_outer_then_center_col': 0.3,
+    'custom_list1_center_then_outer': 0.3,
+    'custom_list1_outer_then_center': 0.3,
 }
 
 # 默认延迟（当模式不在配置中时使用）

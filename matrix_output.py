@@ -312,6 +312,21 @@ def edge_pair_matrices(matrix1: List[List[Any]], matrix2: List[List[Any]],
     ]
 
 
+def custom_steps(matrix1: List[List[Any]], matrix2: List[List[Any]],
+                 steps: List[List[Any]]) -> List[List[Any]]:
+    """Return explicitly configured output steps.
+
+    Args:
+        matrix1: Accepted to match the shared mode function signature.
+        matrix2: Accepted to match the shared mode function signature.
+        steps: Output values for each step.
+
+    Returns:
+        A copy of the configured output steps.
+    """
+    return [list(step) for step in steps]
+
+
 def validate_matrices(matrix1: List[List[Any]], matrix2: List[List[Any]]) -> bool:
     """验证两个矩阵是否为相同大小的方阵
 

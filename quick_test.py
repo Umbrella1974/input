@@ -6,7 +6,7 @@
 import sys
 sys.path.insert(0, '.')
 
-from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices
+from matrix_output import single_matrix, staggered_matrices, sequential_matrices, edge_single_matrix, edge_pair_matrices, custom_steps
 from config import MATRIX1, MATRIX2, OUTPUT_MODES
 
 def quick_test():
@@ -57,6 +57,8 @@ def quick_test():
                 steps = edge_single_matrix(MATRIX1, MATRIX2, **params)
             elif func_name == 'edge_pair_matrices':
                 steps = edge_pair_matrices(MATRIX1, MATRIX2, **params)
+            elif func_name == 'custom_steps':
+                steps = custom_steps(MATRIX1, MATRIX2, **params)
             else:
                 print(f"  错误: 未知函数 {func_name}")
                 continue
