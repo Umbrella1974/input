@@ -20,13 +20,13 @@ TACTON_POOL = {
 # Participant-visible labels. Replace these with the final labels you need.
 CHOICE_LABELS = {
     1: ".",
-    4: ". .",
-    5: ". . . .",
-    8: "—— .",
-    9: "—— . ——",
-    10: ". ——",
-    11: "~~~~~",
-}
+    4: ". . . .",
+    5: "- - .",
+    8: "- .",
+    9: "- . -",
+    10: ". -",
+    11: "- - - -",
+}#changed 4 & 5
 
 # Rough Slip playback duration for tacton 11.
 ROUGH_SLIP_DURATION_MS = 2000
