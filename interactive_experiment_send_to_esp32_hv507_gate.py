@@ -397,11 +397,14 @@ def run_trial(
             status="answered",
         )
 
-        print(
-            f"已记录答案: {row['answer_label']}，"
-            f"正确={row['is_correct']}，RT={row['reaction_time_sec']}秒，"
-            f"重播={replay_count}"
-        )
+        if run_mode == "train":
+            print(
+                f"已记录答案: {row['answer_label']}，"
+                f"正确={row['is_correct']}，RT={row['reaction_time_sec']}秒，"
+                f"重播={replay_count}"
+            )
+        else:
+            print("答案已记录，进入下一题")
 
         if not dry_run:
             append_result(row)

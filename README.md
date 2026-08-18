@@ -352,11 +352,12 @@ timestamp,session_id,run_mode,trial_index,true_mode,true_label,answer_mode,answe
 训练/受试模式与帧显示开关：
 
 - `train`：训练模式，屏幕会提示本题正确标签，例如 `训练提示: 本次信号 = 列→`。
-- `test`：受试模式，屏幕不会提示本题正确标签。
+- `test`：受试模式，屏幕不会提示本题正确标签，也不会在作答后显示正确/错误或反应时间。
 - `test`：受试模式固定静默发送，不显示 channels、frame、control byte、auto-off 换算、步骤进度或本 trial 共有几步，避免受试者通过屏幕提示推断刺激结构。
 - `是否显示本次trial帧内容`：训练模式下控制屏幕上是否打印 channels 和 frame；受试模式不会询问该选项。
 - 以上设置在 dry-run 和真实 ESP32 连接模式下都生效。
 - 每个 trial 在真正发送前都会等待按下 `Enter`；输入 `q` 可以在发送前退出实验。因此真实发送模式连接 ESP32 并等待上电准备后，不会自动开始第一个 trial。
+- 受试模式虽然不在屏幕显示正确性和 RT，但真实发送模式仍会把这些字段写入 `experiment_results.csv`，供实验后分析。
 
 学习入口使用同一个 `experiment_pool_config.py`，但行为不同：
 
