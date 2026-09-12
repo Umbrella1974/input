@@ -83,6 +83,9 @@ MATRIX2 = [
 - `interactive_experiment_send_to_esp32_hv507_gate_autoff.py`：面向 `esp32_fast_main_hv507_gate_autoff.py` 的随机实验入口，实验逻辑同上，但发送协议使用 auto-off 控制字节。
 - `interactive_send_to_esp32_hv507_gate_autoff_guard.py`：PC 端最小测试入口，复用 auto-off 协议，但在下一帧发送前等待 `auto_off_time + guard`，用于避免下一帧提前截断上一帧 BL 高电平。
 - `interactive_learning_send_to_esp32_hv507_gate_autoff.py`：学习入口，按实验池有效模式顺序提示标签并播放信号，不答题，记录每个模式的学习播放次数。
+- `interactive_send_to_esp32_motor_drv2605_tacton.py`：面向 DRV2605 motor/tacton ESP32 服务端的手动播放入口，发送 `PLAY` / `STOP` / `PING` 文本命令。
+- `interactive_experiment_send_to_esp32_motor_drv2605_tacton.py`：motor/tacton 随机实验入口，从 motor 实验池生成随机 trial 顺序，播放 tacton 后记录答案、反应时间和重播次数。
+- `interactive_learning_send_to_esp32_motor_drv2605_tacton.py`：motor/tacton 学习入口，按 motor 实验池有效 tacton 顺序提示标签并播放，不答题，记录每个 tacton 的学习播放次数。
 
 `output_scores.csv` 当前已有示例评分记录，字段为：
 
@@ -196,6 +199,24 @@ python interactive_send_to_esp32_hv507_gate_autoff_guard.py
 
 ```bash
 python interactive_learning_send_to_esp32_hv507_gate_autoff.py
+```
+
+运行 motor/DRV2605 手动播放入口：
+
+```bash
+python interactive_send_to_esp32_motor_drv2605_tacton.py
+```
+
+运行 motor/DRV2605 随机实验入口：
+
+```bash
+python interactive_experiment_send_to_esp32_motor_drv2605_tacton.py
+```
+
+运行 motor/DRV2605 学习入口：
+
+```bash
+python interactive_learning_send_to_esp32_motor_drv2605_tacton.py
 ```
 
 启动后会先询问是否 `dry-run`：
@@ -484,6 +505,52 @@ checksum = sum(payload) & 0xFF
 AA 55 AA 55 03 01 04 07 0C
 ```
 
+## HV507 与 motor/DRV2605 入口区别
+
+HV507 入口用于矩阵电极/通道输出，发送的是二进制帧。PC 端先根据 `config.py` 和 `matrix_output.py` 生成每个 trial 的 channel step，然后按 ESP32 协议打包：
+
+```text
+MAGIC(4B) + length(1B) + payload(N) + checksum(1B)
+```
+
+当前主要入口：
+
+```text
+interactive_send_to_esp32_hv507_gate_autoff_with_scoring.py     # 普通打分版
+interactive_experiment_send_to_esp32_hv507_gate_autoff.py       # 随机实验版
+interactive_learning_send_to_esp32_hv507_gate_autoff.py         # 学习版
+```
+
+motor/DRV2605 入口用于触觉马达 tacton 输出，不发送矩阵 channel 帧，而是发送文本命令给 ESP32：
+
+```text
+PLAY <tacton_id> [rough_duration_ms]
+STOP
+PING
+```
+
+当前主要入口：
+
+```text
+interactive_send_to_esp32_motor_drv2605_tacton.py               # 手动播放版
+interactive_experiment_send_to_esp32_motor_drv2605_tacton.py    # 随机实验版
+interactive_learning_send_to_esp32_motor_drv2605_tacton.py      # 学习版
+```
+
+两套入口使用的配置也不同：
+
+```text
+experiment_pool_config.py          # HV507 随机实验池、标签、学习次数、CSV 文件名
+motor_tacton_experiment_config.py  # motor tacton 随机实验池、标签、学习次数、CSV 文件名
+```
+
+端口默认值也不同：
+
+```text
+HV507 auto-off: 12345
+motor/DRV2605: 12346
+```
+
 ## 代码调用示例
 
 ```python
@@ -555,7 +622,11 @@ input_function/
 ├── experiment_pool_config.py            # 随机实验池和选项标签配置
 ├── interactive_experiment_send_to_esp32_hv507_gate.py # 随机实验入口
 ├── interactive_experiment_send_to_esp32_hv507_gate_autoff.py # 随机实验auto-off入口
-├── interactive_learning_send_to_esp32_hv507_gate_autoff.py # 学习入口
+├── interactive_learning_send_to_esp32_hv507_gate_autoff.py # HV507学习入口
+├── motor_tacton_experiment_config.py # motor tacton随机实验池和选项标签配置
+├── interactive_send_to_esp32_motor_drv2605_tacton.py # motor tacton手动播放入口
+├── interactive_experiment_send_to_esp32_motor_drv2605_tacton.py # motor tacton随机实验入口
+├── interactive_learning_send_to_esp32_motor_drv2605_tacton.py # motor tacton学习入口
 ├── test.py                             # 断言式测试脚本
 ├── quick_test.py                       # 快速人工检查脚本
 ├── output_scores.csv                   # 评分结果 CSV
